@@ -48,12 +48,32 @@ namespace TI_NET_API.BLL.Services
 
         public Movie? Patch(int id, Movie movie)
         {
-            throw new NotImplementedException();
+            Movie? movieToPatch = _repository.GetById(id);
+            if (movieToPatch is not null)
+            {
+                movieToPatch.Release = movie.Release;
+
+                return _repository.Patch(movieToPatch);
+            }
+
+            return null;
         }
 
         public Movie? Update(int id, Movie movie)
         {
-            throw new NotImplementedException();
+            Movie? movieToUpdate = _repository.GetById(id);
+            if (movieToUpdate is not null)
+            {
+                movieToUpdate.Title = movie.Title;
+                movieToUpdate.Synopsis = movie.Synopsis;
+                movieToUpdate.Release = movie.Release;
+                movieToUpdate.Director = movie.Director;
+
+                return _repository.Update(movieToUpdate);
+            }
+
+            return null;
+
         }
     }
 }

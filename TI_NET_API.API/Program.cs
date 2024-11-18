@@ -1,5 +1,6 @@
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.BLL.Services;
+using TI_NET_API.DAL.Context;
 using TI_NET_API.DAL.Interfaces;
 using TI_NET_API.DAL.Repositories;
 
@@ -23,6 +24,7 @@ builder.Services.AddSwaggerGen();
 
 // Dependency Injection
 
+builder.Services.AddSingleton<FakeDB>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IMovieServices, MovieServices>();
 

@@ -77,17 +77,13 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            Movie? movie = _service.GetById(id);
+            Movie? movie = _service.Update(id, movieDTO.ToMovie());
 
             if (movie is null)
             {
                 return NotFound(new {message = $"L'Id : {id} n'existe pas dans la BDD"});
             }
 
-            movie.Title = movieDTO.Title;
-            movie.Synopsis = movieDTO.Synopsis;
-            movie.Director = movieDTO.Director;
-            movie.Release = movieDTO.Release;
 
             return Ok(movie);
 
@@ -105,14 +101,12 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            Movie? movie = _service.GetById(id);
+            Movie? movie = _service.Patch(id, movieDTO.ToMovie());
 
             if (movie is null)
             {
                 return NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
             }
-
-            movie.Release = movieDTO.Release;
 
             return Ok(movie);
 

@@ -11,36 +11,50 @@ namespace TI_NET_API.DAL.Repositories
 {
     public class MovieRepository : IMovieRepository
     {
+
+        private readonly FakeDB _db;
+
+        public MovieRepository(FakeDB db)
+        {
+            _db = db;
+        }
+
         public Movie? Create(Movie movie)
         {
-            FakeDB.Movies.Add(movie);
+            if(movie is not null)
+            {
+                movie.Id = ++_db.IdCount;
+
+                _db.Movies.Add(movie);
+            }
             return movie;
         }
 
         public bool Delete(Movie movie)
         {
-            return FakeDB.Movies.Remove(movie);
+            return _db.Movies.Remove(movie);
 
         }
 
         public IEnumerable<Movie> GetAll()
         {
-            return FakeDB.Movies;
+            return _db.Movies;
         }
 
         public Movie? GetById(int id)
         {
-            return FakeDB.Movies.SingleOrDefault(x => x.Id == id);
+            return _db.Movies.SingleOrDefault(x => x.Id == id);
         }
 
         public Movie? Patch(Movie movie)
         {
-            throw new NotImplementedException();
+            return movie is not null ? movie : null;
         }
 
         public Movie? Update(Movie movie)
         {
-            throw new NotImplementedException();
+            return movie is not null ?  movie : null;
+
         }
     }
 }
