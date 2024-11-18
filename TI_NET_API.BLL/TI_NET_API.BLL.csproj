@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TI_NET_API.DAL\TI_NET_API.DAL.csproj" />
     <ProjectReference Include="..\TI_NET_API.DOMAIN\TI_NET_API.DOMAIN.csproj" />
   </ItemGroup>

@@ -9,12 +9,12 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.BLL.Services
 {
-    public class MovieServices : IMovieServices
+    public class MovieService : IMovieService
     {
 
         private readonly IMovieRepository _repository;
 
-        public MovieServices(IMovieRepository repository)
+        public MovieService(IMovieRepository repository)
         {
             _repository = repository;
         }

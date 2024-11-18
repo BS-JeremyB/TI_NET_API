@@ -12,9 +12,9 @@ namespace TI_NET_API.API.Controllers
     public class MoviesController : ControllerBase
     {
 
-        private readonly IMovieServices _service;
+        private readonly IMovieService _service;
 
-        public MoviesController(IMovieServices service)
+        public MoviesController(IMovieService service)
         {
             _service = service;
         }
