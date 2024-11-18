@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TI_NET_API.API.Context;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
-using TI_NET_API.API.Models;
+using TI_NET_API.BLL.Interfaces;
+using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.API.Controllers
 {
@@ -12,12 +12,19 @@ namespace TI_NET_API.API.Controllers
     public class MoviesController : ControllerBase
     {
 
+        private readonly IMovieServices _service;
+
+        public MoviesController(IMovieServices service)
+        {
+            _service = service;
+        }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<Movie>> GetAll()
         {
-            IEnumerable<Movie> movies = FakeDB.Movies;
+            IEnumerable<Movie> movies = _service.GetAll();
 
             if (movies is not null)
             {
@@ -32,14 +39,14 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<Movie> GetById([FromRoute] int id) 
         { 
-            Movie? movie = FakeDB.Movies.SingleOrDefault(x => x.Id == id);
+            Movie? movie = _service.GetById(id);
 
             if(movie is not null)
             {
                 return Ok(movie);
             }
 
-            return NotFound(new { message = " l'id n'existe pas" });
+            return NotFound(new { message = $"l'Id {id} n'existe pas dans la BDD" });
         }
 
         [HttpPost]
@@ -52,9 +59,9 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            Movie movieToAdd = movieDTO.ToMovie();
+            Movie? movieToAdd = _service.Create(movieDTO.ToMovie());
 
-            FakeDB.Movies.Add(movieToAdd);
+
 
             return CreatedAtAction(nameof(GetById), new { id = movieToAdd.Id }, movieToAdd);
         }
@@ -70,7 +77,7 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            Movie? movie = FakeDB.Movies.SingleOrDefault(x => x.Id == id);
+            Movie? movie = _service.GetById(id);
 
             if (movie is null)
             {
@@ -98,7 +105,7 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            Movie? movie = FakeDB.Movies.SingleOrDefault(x => x.Id == id);
+            Movie? movie = _service.GetById(id);
 
             if (movie is null)
             {
@@ -115,19 +122,13 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete([FromRoute] int id) 
-        { 
-            Movie? movie = FakeDB.Movies.SingleOrDefault(x => x.Id == id);
+        {
 
-            if (movie is null)
-            {
-                return NotFound();
-            }
 
-            FakeDB.Movies.Remove(movie);
-
-            return NoContent();
+            return _service.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD"});
 
         }
+
 
 
 

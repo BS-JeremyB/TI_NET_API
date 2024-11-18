@@ -1,8 +1,6 @@
-﻿
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
-using TI_NET_API.API.Models;
+﻿using TI_NET_API.DOMAIN.Models;
 
-namespace TI_NET_API.API.Context
+namespace TI_NET_API.DAL.Context
 {
     public static class FakeDB
     {
