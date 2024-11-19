@@ -92,6 +92,22 @@ builder.Services.AddAuthentication(option =>
     }; 
 });
 
+builder.Services.AddCors(service =>
+{
+    service.AddPolicy("FFA", policy =>
+    {
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+
+    service.AddPolicy("Dev", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200");
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+});
 
 
 var app = builder.Build();
@@ -104,6 +120,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Dev");
 
 app.UseAuthentication();
 app.UseAuthorization();
