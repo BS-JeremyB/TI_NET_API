@@ -25,13 +25,14 @@ namespace TI_NET_API.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<User>> GetAll()
+        public ActionResult<IEnumerable<UserListViewDTO>> GetAll()
         {
             IEnumerable<User> users = _userService.GetAll();
 
             if (users is not null)
             {
-                return Ok(users);
+                return Ok(users.Select(UserMappers.ToListDTO));
+                // return Ok(users.Select(u => u.ToListDTO()));
             }
 
             return NotFound();
@@ -40,13 +41,13 @@ namespace TI_NET_API.API.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<User> GetById([FromRoute] int id)
+        public ActionResult<UserViewDTO> GetById([FromRoute] int id)
         {
             User? user = _userService.GetById(id);
 
             if (user is not null)
             {
-                return Ok(user);
+                return Ok(user.ToDTO());
             }
 
             return NotFound(new { message = $"l'Id {id} n'existe pas dans la BDD" });
@@ -55,25 +56,28 @@ namespace TI_NET_API.API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<User> Create([FromBody] UserCreateFormDTO userDTO)
+        public ActionResult<UserViewDTO> Create([FromBody] UserCreateFormDTO userDTO)
         {
             if (userDTO is null || !ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new { message = "Données invalides" });
             }
 
             User? userToAdd = _userService.Create(userDTO.ToUser());
 
+            if(userToAdd is null)
+            {
+                return BadRequest(new { message = "Erreurs lors de la création du compte" });
+            }
 
-
-            return CreatedAtAction(nameof(GetById), new { id = userToAdd.Id }, userToAdd);
+            return CreatedAtAction(nameof(GetById), new { id = userToAdd.Id }, userToAdd.ToDTO());
         }
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<User> Update([FromRoute] int id, [FromBody] UserUpdateFormDTO userDTO)
+        public ActionResult<UserViewDTO> Update([FromRoute] int id, [FromBody] UserUpdateFormDTO userDTO)
         {
             if (userDTO is null || !ModelState.IsValid)
             {
@@ -87,17 +91,14 @@ namespace TI_NET_API.API.Controllers
                 return NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
             }
 
-
-            return Ok(user);
-
-
+            return Ok(user.ToDTO());
         }
 
         [HttpPatch("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<User> Patch([FromRoute] int id, [FromBody] UserPatchFormDTO userDTO)
+        public ActionResult<UserViewDTO> Patch([FromRoute] int id, [FromBody] UserPatchFormDTO userDTO)
         {
             if (userDTO is null || !ModelState.IsValid)
             {
@@ -111,7 +112,7 @@ namespace TI_NET_API.API.Controllers
                 return NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
             }
 
-            return Ok(user);
+            return Ok(user.ToDTO());
 
         }
 
