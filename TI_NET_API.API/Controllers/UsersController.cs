@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
 using TI_NET_API.API.Services;
@@ -41,6 +42,9 @@ namespace TI_NET_API.API.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [Authorize]
         public ActionResult<UserViewDTO> GetById([FromRoute] int id)
         {
             User? user = _userService.GetById(id);
@@ -77,8 +81,18 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [Authorize]
         public ActionResult<UserViewDTO> Update([FromRoute] int id, [FromBody] UserUpdateFormDTO userDTO)
         {
+            // Check les claims (via le JWT) pour savoir si l'utilisateur est Admin ou si c'est l'utilisateur ciblé
+            if(HttpContext.User.Claims.Single(c => c.Type == ClaimTypes.Role).Value != Role.Admin.ToString()
+                && HttpContext.User.Claims.Single(c => c.Type == ClaimTypes.NameIdentifier).Value != id.ToString())
+            {
+                    return Forbid();
+            }
+
             if (userDTO is null || !ModelState.IsValid)
             {
                 return BadRequest();
@@ -98,6 +112,9 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [Authorize(Roles = "Admin")]
         public ActionResult<UserViewDTO> Patch([FromRoute] int id, [FromBody] UserPatchFormDTO userDTO)
         {
             if (userDTO is null || !ModelState.IsValid)
@@ -120,12 +137,12 @@ namespace TI_NET_API.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [Authorize(Roles = nameof(Role.Admin))]
         public ActionResult Delete([FromRoute] int id)
         {
-
-
             return _userService.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
-
         }
 
         [HttpPost("login")]

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
@@ -9,6 +10,7 @@ namespace TI_NET_API.API.Controllers
 {
     [Route("api/[controller]")] // localhost/7035/api/Movies
     [ApiController]
+    [Authorize]
     public class MoviesController : ControllerBase
     {
 
@@ -22,6 +24,7 @@ namespace TI_NET_API.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [AllowAnonymous]
         public ActionResult<IEnumerable<MovieListViewDTO>> GetAll()
         {
             IEnumerable<Movie> movies = _service.GetAll();
@@ -37,11 +40,11 @@ namespace TI_NET_API.API.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<MovieViewDTO> GetById([FromRoute] int id) 
-        { 
+        public ActionResult<MovieViewDTO> GetById([FromRoute] int id)
+        {
             Movie? movie = _service.GetById(id);
 
-            if(movie is not null)
+            if (movie is not null)
             {
                 return Ok(movie.ToDTO());
             }
@@ -54,7 +57,7 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<MovieViewDTO> Create([FromBody] MovieCreateFormDTO movieDTO)
         {
-            if (movieDTO is null || !ModelState.IsValid) 
+            if (movieDTO is null || !ModelState.IsValid)
             {
                 return BadRequest();
             }
@@ -68,9 +71,10 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = "Admin,Moderator")]
         public ActionResult<MovieViewDTO> Update([FromRoute] int id, [FromBody] MovieUpdateFormDTO movieDTO)
         {
-            if(movieDTO is null || !ModelState.IsValid)
+            if (movieDTO is null || !ModelState.IsValid)
             {
                 return BadRequest();
             }
@@ -79,7 +83,7 @@ namespace TI_NET_API.API.Controllers
 
             if (movie is null)
             {
-                return NotFound(new {message = $"L'Id : {id} n'existe pas dans la BDD"});
+                return NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
             }
 
 
@@ -90,6 +94,7 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.Moderator)}")]
         public ActionResult<MovieViewDTO> Patch([FromRoute] int id, [FromBody] MoviePatchFormDTO movieDTO)
         {
             if (movieDTO is null || !ModelState.IsValid)
@@ -111,9 +116,10 @@ namespace TI_NET_API.API.Controllers
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult Delete([FromRoute] int id) 
+        [Authorize(Roles = "Admin")]
+        public ActionResult Delete([FromRoute] int id)
         {
-            return _service.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD"});
+            return _service.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
         }
     }
 }
