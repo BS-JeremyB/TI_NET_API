@@ -68,6 +68,7 @@ builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // - API
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<MailHelperService>();
 
 builder.Services.AddAuthentication(option =>
 {

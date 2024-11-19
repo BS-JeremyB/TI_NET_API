@@ -16,11 +16,13 @@ namespace TI_NET_API.API.Controllers
     {
         private readonly IUserService _userService;
         private readonly AuthService _authService;
+        private readonly MailHelperService _mailService;
 
-        public UsersController(IUserService service, AuthService authService)
+        public UsersController(IUserService service, AuthService authService, MailHelperService mailService)
         {
             _userService = service;
             _authService = authService;
+            _mailService = mailService;
         }
 
         [HttpGet]
@@ -62,18 +64,23 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<UserViewDTO> Create([FromBody] UserCreateFormDTO userDTO)
         {
+            // Check des données
             if (userDTO is null || !ModelState.IsValid)
             {
                 return BadRequest(new { message = "Données invalides" });
             }
 
+            // Création du compte
             User? userToAdd = _userService.Create(userDTO.ToUser());
-
             if(userToAdd is null)
             {
                 return BadRequest(new { message = "Erreurs lors de la création du compte" });
             }
 
+            // Envoyer une mail
+            _mailService.SendWelcome(userToAdd);
+
+            // Reponse de la requete
             return CreatedAtAction(nameof(GetById), new { id = userToAdd.Id }, userToAdd.ToDTO());
         }
 
