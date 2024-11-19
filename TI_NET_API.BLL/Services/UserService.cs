@@ -13,12 +13,10 @@ namespace TI_NET_API.BLL.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        private readonly IAuthService _auth;
 
-        public UserService(IUserRepository repository, IAuthService auth)
+        public UserService(IUserRepository repository)
         {
             _repository = repository;
-            _auth = auth;
         }
 
         public User? Create(User user)
@@ -76,17 +74,15 @@ namespace TI_NET_API.BLL.Services
             return null;
         }
 
-        public string? Login(string email, string password)
+        public User? Login(string email, string password)
         {
             User? user = _repository.GetByEmail(email);
             if (user is not null && Argon2.Verify(user.Password, password))
             {
-                return _auth.GenerateToken(user);
-
+                return user;
             }
 
             return null;
-
         }
     }
 }

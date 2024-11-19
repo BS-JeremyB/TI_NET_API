@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
 
-namespace TI_NET_API.BLL.Services
+namespace TI_NET_API.API.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService
     {
         private readonly IConfiguration _config;
 
@@ -23,6 +23,8 @@ namespace TI_NET_API.BLL.Services
 
         public string GenerateToken(User user)
         {
+            // Création d'un objet de securité avec les informations
+            // a stocker dans le token (Pas d'info sensibles !!!)
             List<Claim> claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -30,20 +32,21 @@ namespace TI_NET_API.BLL.Services
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            // Crédentials pour signé le token (Clef + l'algo)
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Génération du token
             JwtSecurityToken token = new JwtSecurityToken(
                 _config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims,
                 expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
+                signingCredentials: creds
+            );
 
+            // Export du token sous forme de chaine de caractere
             return new JwtSecurityTokenHandler().WriteToken(token);
-
-
-
         }
     }
 }

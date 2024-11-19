@@ -16,6 +16,6 @@ namespace TI_NET_API.BLL.Interfaces
         public bool Delete(int id);
         public User? Create(User user);
 
-        public string Login(string email, string password);
+        public User? Login(string email, string password);
     }
 }

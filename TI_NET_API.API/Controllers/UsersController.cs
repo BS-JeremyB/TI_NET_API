@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
+using TI_NET_API.API.Services;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
 
@@ -12,12 +13,13 @@ namespace TI_NET_API.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly IUserService _userService;
+        private readonly AuthService _authService;
 
-        private readonly IUserService _service;
-
-        public UsersController(IUserService service)
+        public UsersController(IUserService service, AuthService authService)
         {
-            _service = service;
+            _userService = service;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -25,7 +27,7 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<User>> GetAll()
         {
-            IEnumerable<User> users = _service.GetAll();
+            IEnumerable<User> users = _userService.GetAll();
 
             if (users is not null)
             {
@@ -40,7 +42,7 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<User> GetById([FromRoute] int id)
         {
-            User? user = _service.GetById(id);
+            User? user = _userService.GetById(id);
 
             if (user is not null)
             {
@@ -60,7 +62,7 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            User? userToAdd = _service.Create(userDTO.ToUser());
+            User? userToAdd = _userService.Create(userDTO.ToUser());
 
 
 
@@ -78,7 +80,7 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            User? user = _service.Update(id, userDTO.ToUser());
+            User? user = _userService.Update(id, userDTO.ToUser());
 
             if (user is null)
             {
@@ -102,7 +104,7 @@ namespace TI_NET_API.API.Controllers
                 return BadRequest();
             }
 
-            User? user = _service.Patch(id, userDTO.ToUser());
+            User? user = _userService.Patch(id, userDTO.ToUser());
 
             if (user is null)
             {
@@ -121,7 +123,7 @@ namespace TI_NET_API.API.Controllers
         {
 
 
-            return _service.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
+            return _userService.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
 
         }
 
@@ -130,14 +132,15 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<string> Login([FromBody] UserLoginDTO user)
         {
-            string response = _service.Login(user.Email, user.Password);
+            User? response = _userService.Login(user.Email, user.Password);
 
-            if(response is not null)
+            if (response is not null)
             {
-                return Ok(response);
+                string token = _authService.GenerateToken(response);
+                return Ok(token);
             }
 
-            return BadRequest(new {message = "Connexion impossible !"});
+            return BadRequest(new { message = "Connexion impossible !" });
         }
 
     }
