@@ -5,6 +5,7 @@ namespace TI_NET_API.API.Mappers
 {
     public static class UserMappers
     {
+        // FormDTO
         public static User ToUser(this UserCreateFormDTO user)
         {
             return new User
@@ -39,6 +40,27 @@ namespace TI_NET_API.API.Mappers
             };
         }
 
+        // ViewDTO
+        public static UserViewDTO ToDTO(this User user)
+        {
+            return new UserViewDTO
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
 
+        public static UserListViewDTO ToListDTO(this User user)
+        {
+            return new UserListViewDTO
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+        }
     }
 }

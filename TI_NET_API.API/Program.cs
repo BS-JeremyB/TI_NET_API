@@ -8,6 +8,7 @@ using TI_NET_API.DAL.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using TI_NET_API.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,9 @@ builder.Services.AddSwaggerGen(c => {
         In = ParameterLocation.Header,
         Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
     });
+
+    // Permet d'ajouter le "cadenas" sur les routes
+    // - Implémentation simple (Cadenas sur toutes les routes)
     c.AddSecurityRequirement(new OpenApiSecurityRequirement {
         {
             new OpenApiSecurityScheme {
@@ -49,17 +53,22 @@ builder.Services.AddSwaggerGen(c => {
             new string[] {}
         }
     });
+    // - Plus d'infos : 
+    // https://github.com/domaindrivendev/Swashbuckle.AspNetCore?tab=readme-ov-file#add-security-definitions-and-requirements
 });
 
 
 // Dependency Injection
-
+// - DAL
 builder.Services.AddSingleton<FakeDB>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
-builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+// - BLL
+builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+// - API
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<MailHelperService>();
 
 builder.Services.AddAuthentication(option =>
 {
@@ -83,6 +92,22 @@ builder.Services.AddAuthentication(option =>
     }; 
 });
 
+builder.Services.AddCors(service =>
+{
+    service.AddPolicy("FFA", policy =>
+    {
+        policy.AllowAnyOrigin();
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+
+    service.AddPolicy("Dev", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200");
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+    });
+});
 
 
 var app = builder.Build();
@@ -95,6 +120,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Dev");
 
 app.UseAuthentication();
 app.UseAuthorization();
