@@ -35,5 +35,27 @@ namespace TI_NET_API.API.Mappers
                 Release = movieDTO.Release,
             };
         }
+    
+    
+        public static MovieViewDTO ToDTO(this Movie movie)
+        {
+            return new MovieViewDTO
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Director = movie.Director,
+                Synopsis = movie.Synopsis,
+                Release = movie.Release,
+            };
+        }
+
+        public static MovieListViewDTO ToListDTO(this Movie movie)
+        {
+            return new MovieListViewDTO
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+            };
+        }
     }
 }

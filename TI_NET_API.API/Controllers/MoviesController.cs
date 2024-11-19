@@ -22,13 +22,13 @@ namespace TI_NET_API.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<Movie>> GetAll()
+        public ActionResult<IEnumerable<MovieListViewDTO>> GetAll()
         {
             IEnumerable<Movie> movies = _service.GetAll();
 
             if (movies is not null)
             {
-                return Ok(movies);
+                return Ok(movies.Select(MovieMappers.ToListDTO));
             }
 
             return NotFound();
@@ -37,13 +37,13 @@ namespace TI_NET_API.API.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Movie> GetById([FromRoute] int id) 
+        public ActionResult<MovieViewDTO> GetById([FromRoute] int id) 
         { 
             Movie? movie = _service.GetById(id);
 
             if(movie is not null)
             {
-                return Ok(movie);
+                return Ok(movie.ToDTO());
             }
 
             return NotFound(new { message = $"l'Id {id} n'existe pas dans la BDD" });
@@ -52,7 +52,7 @@ namespace TI_NET_API.API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Movie> Create([FromBody] MovieCreateFormDTO movieDTO)
+        public ActionResult<MovieViewDTO> Create([FromBody] MovieCreateFormDTO movieDTO)
         {
             if (movieDTO is null || !ModelState.IsValid) 
             {
@@ -61,16 +61,14 @@ namespace TI_NET_API.API.Controllers
 
             Movie? movieToAdd = _service.Create(movieDTO.ToMovie());
 
-
-
-            return CreatedAtAction(nameof(GetById), new { id = movieToAdd.Id }, movieToAdd);
+            return CreatedAtAction(nameof(GetById), new { id = movieToAdd.Id }, movieToAdd.ToDTO());
         }
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Movie> Update([FromRoute] int id, [FromBody] MovieUpdateFormDTO movieDTO)
+        public ActionResult<MovieViewDTO> Update([FromRoute] int id, [FromBody] MovieUpdateFormDTO movieDTO)
         {
             if(movieDTO is null || !ModelState.IsValid)
             {
@@ -85,16 +83,14 @@ namespace TI_NET_API.API.Controllers
             }
 
 
-            return Ok(movie);
-
-
+            return Ok(movie.ToDTO());
         }
 
         [HttpPatch("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Movie> Patch([FromRoute] int id, [FromBody] MoviePatchFormDTO movieDTO)
+        public ActionResult<MovieViewDTO> Patch([FromRoute] int id, [FromBody] MoviePatchFormDTO movieDTO)
         {
             if (movieDTO is null || !ModelState.IsValid)
             {
@@ -108,7 +104,7 @@ namespace TI_NET_API.API.Controllers
                 return NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD" });
             }
 
-            return Ok(movie);
+            return Ok(movie.ToDTO());
 
         }
 
@@ -117,14 +113,7 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete([FromRoute] int id) 
         {
-
-
             return _service.Delete(id) ? NoContent() : NotFound(new { message = $"L'Id : {id} n'existe pas dans la BDD"});
-
         }
-
-
-
-
     }
 }
