@@ -67,7 +67,7 @@ builder.Services.AddTransient<SqlConnection>(c => new SqlConnection(builder.Conf
 // - DAL
 builder.Services.AddSingleton<FakeDB>();
 builder.Services.AddScoped<IMovieRepository, MovieADORepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRepository, UserADORepository>();
 // - BLL
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();

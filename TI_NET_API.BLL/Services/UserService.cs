@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TI_NET_API.BLL.Exceptions;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DAL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
@@ -19,71 +20,157 @@ namespace TI_NET_API.BLL.Services
             _repository = repository;
         }
 
-        public User? Create(User user)
-        {
-            string passwordHash = Argon2.Hash(user.Password);
-            user.Password = passwordHash;
-            return _repository.Create(user);
-        }
-
-        public bool Delete(int id)
-        {
-            User? user = _repository.GetById(id);
-            if(user is not null)
-            {
-                return _repository.Delete(user);
-            }
-
-            return false;
-        }
-
         public IEnumerable<User> GetAll()
         {
-
-            return _repository.GetAll();
+            try
+            {
+                return _repository.GetAll();
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la récupération de la liste : {ex.Message}");
+            }
         }
 
         public User? GetById(int id)
         {
-            return _repository.GetById(id);
+            try
+            {
+                return _repository.GetById(id);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la récupération de l'utilisateur : {ex.Message}");
+            }
         }
 
-
-        public User? Patch(int id, User user)
+        public User? Create(User user)
         {
-            User? userToPatch = _repository.GetById(id);
-            if(userToPatch is not null)
+            try
             {
-                userToPatch.Role = user.Role;
-                return _repository.Patch(userToPatch);
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user), "L'utilisateur ne peut pas être null");
+                }
+
+                if (string.IsNullOrWhiteSpace(user.Email))
+                {
+                    throw new ArgumentException("L'email est obligatoire");
+                }
+
+                if (string.IsNullOrWhiteSpace(user.Password))
+                {
+                    throw new ArgumentException("Le mot de passe est obligatoire");
+                }
+
+                if (_repository.GetByEmail(user.Email) != null)
+                {
+                    throw new ArgumentException("Un utilisateur avec cet email existe déjà");
+                }
+
+                string passwordHash = Argon2.Hash(user.Password);
+                user.Password = passwordHash;
+
+                return _repository.Create(user);
             }
-            return null;
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la création de l'utilisateur : {ex.Message}");
+            }
         }
 
         public User? Update(int id, User user)
         {
-            User? userToUpdate = _repository.GetById(id);
-            if (userToUpdate is not null)
+            try
             {
-                userToUpdate.Role = user.Role;
+                User? userToUpdate = _repository.GetById(id);
+                if (userToUpdate is null)
+                {
+                    return null;
+                }
+
+                if (string.IsNullOrWhiteSpace(user.Email))
+                {
+                    throw new ArgumentException("L'email est obligatoire");
+                }
+
+                User? existingUser = _repository.GetByEmail(user.Email);
+                if (existingUser != null && existingUser.Id != id)
+                {
+                    throw new ArgumentException("Un utilisateur avec cet email existe déjà");
+                }
+
                 userToUpdate.Email = user.Email;
                 userToUpdate.FirstName = user.FirstName;
                 userToUpdate.LastName = user.LastName;
-                userToUpdate.Password = Argon2.Hash(user.Password);
+                userToUpdate.Role = user.Role;
+
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                {
+                    userToUpdate.Password = Argon2.Hash(user.Password);
+                }
+
                 return _repository.Update(userToUpdate);
             }
-            return null;
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la mise à jour de l'utilisateur : {ex.Message}");
+            }
+        }
+
+        public User? Patch(int id, User user)
+        {
+            try
+            {
+                User? userToPatch = _repository.GetById(id);
+                if (userToPatch is null)
+                {
+                    return null;
+                }
+
+                userToPatch.Role = user.Role;
+
+                return _repository.Patch(userToPatch);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la mise à jour partielle de l'utilisateur : {ex.Message}");
+            }
+        }
+
+        public bool Delete(int id)
+        {
+            try
+            {
+                User? user = _repository.GetById(id);
+                if (user is null)
+                {
+                    return false;
+                }
+
+                return _repository.Delete(user);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la suppression de l'utilisateur : {ex.Message}");
+            }
         }
 
         public User? Login(string email, string password)
         {
-            User? user = _repository.GetByEmail(email);
-            if (user is not null && Argon2.Verify(user.Password, password))
+            try
             {
-                return user;
+                User? user = _repository.GetByEmail(email);
+                if (user is not null && Argon2.Verify(user.Password, password))
+                {
+                    return user;
+                }
+                return null;
             }
-
-            return null;
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la connexion : {ex.Message}");
+            }
         }
     }
 }

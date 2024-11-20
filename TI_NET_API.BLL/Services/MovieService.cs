@@ -12,7 +12,6 @@ namespace TI_NET_API.BLL.Services
 {
     public class MovieService : IMovieService
     {
-
         private readonly IMovieRepository _repository;
 
         public MovieService(IMovieRepository repository)
@@ -20,75 +19,113 @@ namespace TI_NET_API.BLL.Services
             _repository = repository;
         }
 
-        public Movie? Create(Movie movie)
-        {
-            try
-            {
-                return _repository.Create(movie);
-            }catch (Exception ex)
-            {
-                throw new CustomSqlException(ex.Message);
-            }
-        }
-
-        public bool Delete(int id)
-        {
-            Movie? movie = _repository.GetById(id);
-            if (movie is not null)
-            {
-                return _repository.Delete(movie);
-                
-            }
-
-            return false;
-        }
-
         public IEnumerable<Movie> GetAll()
         {
             try
             {
-
                 return _repository.GetAll();
-
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                throw new CustomSqlException(ex.Message);
+                throw new CustomSqlException($"Erreur lors de la récupération de la liste : {ex.Message}");
             }
         }
 
         public Movie? GetById(int id)
         {
-            return _repository.GetById(id);
+            try
+            {
+                return _repository.GetById(id);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la récupération du film : {ex.Message}");
+            }
         }
 
-        public Movie? Patch(int id, Movie movie)
+        public Movie? Create(Movie movie)
         {
-            Movie? movieToPatch = _repository.GetById(id);
-            if (movieToPatch is not null)
+            try
             {
-                movieToPatch.Release = movie.Release;
+                if (movie is null)
+                {
+                    throw new ArgumentNullException(nameof(movie), "Le film ne peut pas être null");
+                }
 
-                return _repository.Patch(movieToPatch);
+                if (string.IsNullOrWhiteSpace(movie.Title))
+                {
+                    throw new ArgumentException("Le titre du film est obligatoire");
+                }
+
+                return _repository.Create(movie);
             }
-
-            return null;
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la création du film : {ex.Message}");
+            }
         }
 
         public Movie? Update(int id, Movie movie)
         {
-            Movie? movieToUpdate = _repository.GetById(id);
-            if (movieToUpdate is not null)
+            try
             {
+                Movie? movieToUpdate = _repository.GetById(id);
+                if (movieToUpdate is null)
+                {
+                    return null;
+                }
+
+                if (string.IsNullOrWhiteSpace(movie.Title))
+                {
+                    throw new ArgumentException("Le titre du film est obligatoire");
+                }
+
+
                 movieToUpdate.Title = movie.Title;
                 movieToUpdate.Synopsis = movie.Synopsis;
-                movieToUpdate.Release = movie.Release;
                 movieToUpdate.Director = movie.Director;
-
+                movieToUpdate.Release = movie.Release;
                 return _repository.Update(movieToUpdate);
             }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la mise à jour du film : {ex.Message}");
+            }
+        }
 
-            return null;
+        public Movie? Patch(int id, Movie movie)
+        {
+            try
+            {
+                Movie? movieToPatch = _repository.GetById(id);
+                if (movieToPatch is null)
+                {
+                    return null;
+                }
+                movieToPatch.Release = movie.Release;
+                return _repository.Patch(movieToPatch);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la mise à jour partielle du film : {ex.Message}");
+            }
+        }
 
+        public bool Delete(int id)
+        {
+            try
+            {
+                Movie? movie = _repository.GetById(id);
+                if (movie is null)
+                {
+                    return false;
+                }
+                return _repository.Delete(movie);
+            }
+            catch (Exception ex)
+            {
+                throw new CustomSqlException($"Erreur lors de la suppression du film : {ex.Message}");
+            }
         }
     }
 }
