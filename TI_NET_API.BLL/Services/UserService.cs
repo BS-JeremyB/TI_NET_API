@@ -39,6 +39,7 @@ namespace TI_NET_API.BLL.Services
 
         public IEnumerable<User> GetAll()
         {
+
             return _repository.GetAll();
         }
 

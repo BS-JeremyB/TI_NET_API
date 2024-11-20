@@ -35,7 +35,7 @@ namespace TI_NET_API.API.Controllers
             if (users is not null)
             {
                 return Ok(users.Select(UserMappers.ToListDTO));
-                // return Ok(users.Select(u => u.ToListDTO()));
+                //return Ok(users.Select(u => u.ToListDTO()));
             }
 
             return NotFound();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TI_NET_API.BLL.Exceptions;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DAL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
@@ -21,7 +22,13 @@ namespace TI_NET_API.BLL.Services
 
         public Movie? Create(Movie movie)
         {
-            return _repository.Create(movie);
+            try
+            {
+                return _repository.Create(movie);
+            }catch (Exception ex)
+            {
+                throw new CustomSqlException(ex.Message);
+            }
         }
 
         public bool Delete(int id)
@@ -38,7 +45,15 @@ namespace TI_NET_API.BLL.Services
 
         public IEnumerable<Movie> GetAll()
         {
-            return _repository.GetAll();
+            try
+            {
+
+                return _repository.GetAll();
+
+            }catch (Exception ex)
+            {
+                throw new CustomSqlException(ex.Message);
+            }
         }
 
         public Movie? GetById(int id)

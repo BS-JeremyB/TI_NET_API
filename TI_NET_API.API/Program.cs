@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using TI_NET_API.API.Services;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,9 +60,13 @@ builder.Services.AddSwaggerGen(c => {
 
 
 // Dependency Injection
+// - DB
+
+builder.Services.AddTransient<SqlConnection>(c => new SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // - DAL
 builder.Services.AddSingleton<FakeDB>();
-builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IMovieRepository, MovieADORepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 // - BLL
 builder.Services.AddScoped<IMovieService, MovieService>();

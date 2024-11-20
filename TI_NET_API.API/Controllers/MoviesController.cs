@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
+using TI_NET_API.BLL.Exceptions;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
 
@@ -23,18 +24,23 @@ namespace TI_NET_API.API.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AllowAnonymous]
         public ActionResult<IEnumerable<MovieListViewDTO>> GetAll()
         {
-            IEnumerable<Movie> movies = _service.GetAll();
-
-            if (movies is not null)
+            try
             {
+  
+                IEnumerable<Movie> movies = _service.GetAll();
                 return Ok(movies.Select(MovieMappers.ToListDTO));
+                
+            }catch (CustomSqlException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }catch (Exception ex)
+            {
+                return Problem();
             }
-
-            return NotFound();
         }
 
         [HttpGet("{id:int}")]
@@ -54,17 +60,30 @@ namespace TI_NET_API.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<MovieViewDTO> Create([FromBody] MovieCreateFormDTO movieDTO)
         {
-            if (movieDTO is null || !ModelState.IsValid)
+            try
             {
-                return BadRequest();
+                if (movieDTO is null || !ModelState.IsValid)
+                {
+                    return BadRequest();
+                }
+
+                Movie? movieToAdd = _service.Create(movieDTO.ToMovie());
+
+                return CreatedAtAction(nameof(GetById), new { id = movieToAdd.Id }, movieToAdd.ToDTO());
             }
-
-            Movie? movieToAdd = _service.Create(movieDTO.ToMovie());
-
-            return CreatedAtAction(nameof(GetById), new { id = movieToAdd.Id }, movieToAdd.ToDTO());
+            catch (CustomSqlException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+            
         }
 
         [HttpPut("{id:int}")]
