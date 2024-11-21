@@ -7,7 +7,7 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.DAL.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserRepository : IBaseRepository
     {
         public IEnumerable<User> GetAll();
         public User? GetById(int id);

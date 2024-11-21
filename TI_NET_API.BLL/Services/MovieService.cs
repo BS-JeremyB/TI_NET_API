@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TI_NET_API.BLL.Base;
 using TI_NET_API.BLL.Exceptions;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DAL.Interfaces;
@@ -10,7 +11,7 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.BLL.Services
 {
-    public class MovieService : IMovieService
+    public class MovieService : BaseService, IMovieService
     {
         private readonly IMovieRepository _repository;
 
@@ -23,6 +24,7 @@ namespace TI_NET_API.BLL.Services
         {
             try
             {
+                _repository.SetPaginationParams(PaginationParams);
                 return _repository.GetAll();
             }
             catch (Exception ex)

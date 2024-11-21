@@ -6,6 +6,7 @@ using TI_NET_API.API.Mappers;
 using TI_NET_API.BLL.Exceptions;
 using TI_NET_API.BLL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
+using TI_NET_API.DOMAIN.Tools;
 
 namespace TI_NET_API.API.Controllers
 {
@@ -25,10 +26,17 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AllowAnonymous]
-        public ActionResult<IEnumerable<MovieListViewDTO>> GetAll()
+        public ActionResult<IEnumerable<MovieListViewDTO>> GetAll(int limit = 20, int offset = 0)
         {
             try
             {
+                PaginationParams paginationParams = new PaginationParams()
+                {
+                    Limit = limit,
+                    Offset = offset
+                };
+                _service.SetPaginationParams(paginationParams);
+
                 IEnumerable<Movie> movies = _service.GetAll();
                 return Ok(movies.Select(MovieMappers.ToListDTO));
             }

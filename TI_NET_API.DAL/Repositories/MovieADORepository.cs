@@ -5,12 +5,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TI_NET_API.DAL.Base;
 using TI_NET_API.DAL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.DAL.Repositories
 {
-    public class MovieADORepository : IMovieRepository
+    public class MovieADORepository : BaseRepository, IMovieRepository
     {
         private readonly SqlConnection _connection;
 
@@ -72,7 +73,12 @@ namespace TI_NET_API.DAL.Repositories
             {
                 using SqlCommand command = _connection.CreateCommand();
 
-                command.CommandText = "SELECT * FROM dbo.[MOVIE]";
+                command.CommandText = "SELECT * FROM dbo.[MOVIE] " +
+                                        "ORDER BY Id " +
+                                        "OFFSET @offset ROWS " + 
+                                        "FETCH NEXT @limit ROWS ONLY;";
+                command.Parameters.AddWithValue("@offset", PaginationParams.Offset);
+                command.Parameters.AddWithValue("@limit", PaginationParams.Limit);
                 _connection.Open();
                 using SqlDataReader reader = command.ExecuteReader();
 

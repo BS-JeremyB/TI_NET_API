@@ -7,7 +7,7 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.DAL.Interfaces
 {
-    public interface IMovieRepository
+    public interface IMovieRepository : IBaseRepository
     {
         public IEnumerable<Movie> GetAll();
         public Movie? GetById(int id);

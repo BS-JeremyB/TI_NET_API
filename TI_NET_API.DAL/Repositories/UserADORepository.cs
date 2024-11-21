@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TI_NET_API.DAL.Base;
 using TI_NET_API.DAL.Interfaces;
 using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.DAL.Repositories
 {
-    public class UserADORepository : IUserRepository
+    public class UserADORepository : BaseRepository, IUserRepository
     {
         private readonly SqlConnection _connection;
 

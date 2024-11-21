@@ -7,7 +7,7 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.BLL.Interfaces
 {
-    public interface IMovieService
+    public interface IMovieService : IBaseService
     {
         public IEnumerable<Movie> GetAll();
         public Movie? GetById(int id);
