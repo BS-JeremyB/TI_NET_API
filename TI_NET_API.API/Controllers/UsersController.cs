@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,7 +12,9 @@ using TI_NET_API.DOMAIN.Models;
 
 namespace TI_NET_API.API.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion(1, Deprecated = true)]
+    [ApiVersion(2)]
+    [Route("api/v{v:apiVersion}/[controller]")]
     [ApiController]
     [Authorize]
     public class UsersController : ControllerBase

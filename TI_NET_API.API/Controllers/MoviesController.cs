@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using TI_NET_API.API.DTO;
 using TI_NET_API.API.Mappers;
 using TI_NET_API.BLL.Exceptions;
@@ -10,7 +12,9 @@ using TI_NET_API.DOMAIN.Tools;
 
 namespace TI_NET_API.API.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1", Deprecated = true)]
+    [ApiVersion("2")]
+    [Route("api/v{v:apiVersion}/[controller]")]
     [ApiController]
     [Authorize]
     public class MoviesController : ControllerBase
@@ -26,7 +30,37 @@ namespace TI_NET_API.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AllowAnonymous]
-        public ActionResult<IEnumerable<MovieListViewDTO>> GetAll(int limit = 20, int offset = 0)
+        [MapToApiVersion("1")]
+        public ActionResult<IEnumerable<MovieListViewDTO>> GetAllv1()
+        {
+            try
+            {
+                PaginationParams paginationParams = new PaginationParams()
+                {
+                    Limit = 1,
+                    Offset = 1
+                };
+                _service.SetPaginationParams(paginationParams);
+                IEnumerable<Movie> movies = _service.GetAll();
+                return Ok(movies.Select(MovieMappers.ToListDTO));
+            }
+            catch (CustomSqlException ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Une erreur interne est survenue lors de la récupération des films");
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [AllowAnonymous]
+        [MapToApiVersion("2")]
+        public ActionResult<IEnumerable<MovieListViewDTO>> GetAllv2(int limit = 20, int offset = 0)
         {
             try
             {

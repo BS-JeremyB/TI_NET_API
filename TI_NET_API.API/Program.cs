@@ -10,6 +10,11 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using TI_NET_API.API.Services;
 using Microsoft.Data.SqlClient;
+using Asp.Versioning;
+using Microsoft.Extensions.Options;
+using Asp.Versioning.ApiExplorer;
+using TI_NET_API.API.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +35,31 @@ builder.Services.AddControllers().AddJsonOptions(option =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+//Install-Package Asp.Versioning.Http # This is needed for Minimal APIs
+//Install-Package Asp.Versioning.Mvc # This is needed for Controllers
+//Install-Package Asp.Versioning.Mvc.ApiExplorer
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(2);
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader()
+        //new HeaderApiVersionReader("X-Api-Version")
+        );
+})
+.AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 builder.Services.AddSwaggerGen(c => {
+
+    c.OperationFilter<SwaggerDefaultValues>();
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -74,6 +103,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 // - API
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MailHelperService>();
+
+// - Swagger Versioning
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddAuthentication(option =>
 {
@@ -121,7 +153,18 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        var descriptions = app.DescribeApiVersions();
+
+        // Build a swagger endpoint for each discovered API version
+        foreach (var description in descriptions)
+        {
+            var url = $"/swagger/{description.GroupName}/swagger.json";
+            var name = description.GroupName.ToUpperInvariant();
+            options.SwaggerEndpoint(url, name);
+        }
+    });
 }
 
 app.UseHttpsRedirection();
